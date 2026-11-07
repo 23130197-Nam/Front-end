@@ -1,9 +1,12 @@
 import ConversationList from '../features/chat/components/ConversationList'
+import { mockConversations } from '../features/chat/mockConversations'
 import MainLayout from '../layouts/MainLayout'
 
 export default function ChatPage() {
     return (
-        <MainLayout sidebar={<ConversationList conversations={[]} />}>
+        <MainLayout
+            sidebar={<ConversationList conversations={mockConversations} />}
+        >
             <header className="chat-content__header">
                 <h1 id="chat-page-title">Ứng dụng Chat</h1>
                 <p>Kết nối và trò chuyện cùng mọi người.</p>
