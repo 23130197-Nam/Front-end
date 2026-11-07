@@ -1,14 +1,9 @@
+import ConversationList from '../features/chat/components/ConversationList'
 import MainLayout from '../layouts/MainLayout'
 
 export default function ChatPage() {
     return (
-        <MainLayout
-            sidebar={
-                <p className="chat-sidebar__placeholder">
-                    Danh sách cuộc trò chuyện sẽ hiển thị tại đây.
-                </p>
-            }
-        >
+        <MainLayout sidebar={<ConversationList conversations={[]} />}>
             <header className="chat-content__header">
                 <h1 id="chat-page-title">Ứng dụng Chat</h1>
                 <p>Kết nối và trò chuyện cùng mọi người.</p>
