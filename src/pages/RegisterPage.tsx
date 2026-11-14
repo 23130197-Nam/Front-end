@@ -1,136 +1,131 @@
-import { useState, type FormEvent } from 'react'
-import { Link } from 'react-router-dom'
-import './Auth.css'
-
-const usernamePattern = /^[A-Za-z0-9_]+$/
+import { useState, useEffect } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import { useAppDispatch, useAppSelector } from "../store/hooks";
+import { registerWithWebSocket } from "../features/auth/authAPI";
+import { wsService } from "../services/websocketService";
+import { authFailure } from "../features/auth/userReducer";
 
 export default function RegisterPage() {
-    const [username, setUsername] = useState('')
-    const [password, setPassword] = useState('')
-    const [confirmPassword, setConfirmPassword] = useState('')
-    const [status, setStatus] = useState<
-        'idle' | 'error' | 'success'
-    >('idle')
-    const [message, setMessage] = useState('')
+    const [formData, setFormData] = useState({
+        username: '',
+        password: '',
+        full_name: '',
+        phone_number: '',
+    });
 
-    const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
-        event.preventDefault()
+    const dispatch = useAppDispatch();
+    const navigate = useNavigate();
+    const { isLoading, error } = useAppSelector((state) => state.user);
 
-        const normalizedUsername = username.trim()
+    useEffect(() => {
+        wsService.connect();
 
-        if (!normalizedUsername || !password || !confirmPassword) {
-            setStatus('error')
-            setMessage('Vui lòng nhập đầy đủ thông tin.')
-            return
+        const handleRegisterResponse = (response: any) => {
+            if (response.status === 'success') {
+                alert('Đăng ký tài khoản thành công! Vui lòng đăng nhập.');
+                navigate('/login');
+            } else {
+                dispatch(authFailure(response.message || 'Đăng ký thất bại!'));
+            }
+        };
+
+        wsService.on('REGISTER', handleRegisterResponse);
+
+        return () => {
+            wsService.off('REGISTER', handleRegisterResponse);
+        };
+    }, [dispatch, navigate]);
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setFormData({ ...formData, [e.target.name]: e.target.value });
+    };
+
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!formData.username || !formData.password || !formData.full_name) {
+            alert('Vui lòng điền đầy đủ các trường bắt buộc!');
+            return;
         }
-
-        if (!usernamePattern.test(normalizedUsername)) {
-            setStatus('error')
-            setMessage(
-                'Tên đăng nhập chỉ được chứa chữ cái, số và dấu gạch dưới.',
-            )
-            return
-        }
-
-        if (password !== confirmPassword) {
-            setStatus('error')
-            setMessage('Mật khẩu xác nhận không trùng khớp.')
-            return
-        }
-
-        setStatus('success')
-        setMessage(
-            'Dữ liệu hợp lệ. Chức năng đăng ký sẽ được kết nối sau.',
-        )
-    }
+        registerWithWebSocket(formData, dispatch, () => {});
+    };
 
     return (
-        <div className="auth-page">
-            <section className="auth-card">
-                <h1 className="auth-title">Đăng ký</h1>
+        <div className="container-fluid vh-100 d-flex align-items-center justify-content-center bg-light">
+            <div className="card shadow-lg p-4 border-0 rounded-4" style={{ width: '100%', maxWidth: '450px' }}>
+                <div className="text-center mb-4">
+                    <h2 className="fw-bold text-success">Đăng Ký Tài Khoản</h2>
+                    <p className="text-muted">Tham gia cùng cộng đồng trò chuyện ngay hôm nay</p>
+                </div>
 
-                <p className="auth-description">
-                    Tạo tài khoản để bắt đầu trò chuyện.
-                </p>
+                {error && <div className="alert alert-danger py-2">{error}</div>}
 
-                <form className="auth-form" onSubmit={handleSubmit}>
-                    <div className="auth-field">
-                        <label className="auth-label" htmlFor="register-username">
-                            Tên đăng nhập
-                        </label>
-
+                <form onSubmit={handleSubmit}>
+                    <div className="mb-3">
+                        <label className="form-label fw-semibold">Họ và tên</label>
                         <input
-                            id="register-username"
-                            className="auth-input"
                             type="text"
-                            value={username}
-                            onChange={(event) => setUsername(event.target.value)}
-                            autoComplete="username"
-                            placeholder="Ví dụ: sinhvien_01"
+                            name="full_name"
+                            className="form-control"
+                            placeholder="Nhập họ tên của bạn..."
+                            value={formData.full_name}
+                            onChange={handleChange}
+                            required
                         />
                     </div>
 
-                    <div className="auth-field">
-                        <label className="auth-label" htmlFor="register-password">
-                            Mật khẩu
-                        </label>
-
+                    <div className="mb-3">
+                        <label className="form-label fw-semibold">Tên tài khoản (Username)</label>
                         <input
-                            id="register-password"
-                            className="auth-input"
-                            type="password"
-                            value={password}
-                            onChange={(event) => setPassword(event.target.value)}
-                            autoComplete="new-password"
-                            placeholder="Nhập mật khẩu"
+                            type="text"
+                            name="username"
+                            className="form-control"
+                            placeholder="Chọn username..."
+                            value={formData.username}
+                            onChange={handleChange}
+                            required
                         />
                     </div>
 
-                    <div className="auth-field">
-                        <label
-                            className="auth-label"
-                            htmlFor="register-confirm-password"
-                        >
-                            Xác nhận mật khẩu
-                        </label>
-
+                    <div className="mb-3">
+                        <label className="form-label fw-semibold">Mật khẩu</label>
                         <input
-                            id="register-confirm-password"
-                            className="auth-input"
                             type="password"
-                            value={confirmPassword}
-                            onChange={(event) =>
-                                setConfirmPassword(event.target.value)
-                            }
-                            autoComplete="new-password"
-                            placeholder="Nhập lại mật khẩu"
+                            name="password"
+                            className="form-control"
+                            placeholder="Nhập mật khẩu..."
+                            value={formData.password}
+                            onChange={handleChange}
+                            required
                         />
                     </div>
 
-                    {status !== 'idle' && (
-                        <p
-                            className={`auth-message ${
-                                status === 'error'
-                                    ? 'auth-message--error'
-                                    : 'auth-message--success'
-                            }`}
-                        >
-                            {message}
-                        </p>
-                    )}
+                    <div className="mb-4">
+                        <label className="form-label fw-semibold">Số điện thoại (Tùy chọn)</label>
+                        <input
+                            type="text"
+                            name="phone_number"
+                            className="form-control"
+                            placeholder="Nhập số điện thoại..."
+                            value={formData.phone_number}
+                            onChange={handleChange}
+                        />
+                    </div>
 
-                    <button className="auth-button" type="submit">
-                        Đăng ký
+                    <button type="submit" className="btn btn-success w-100 py-2 fw-semibold" disabled={isLoading}>
+                        {isLoading ? (
+                            <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                        ) : (
+                            <i className="bi bi-person-plus-fill me-2"></i>
+                        )}
+                        {isLoading ? 'Đang đăng ký...' : 'Đăng Ký'}
                     </button>
                 </form>
 
-                <p className="auth-switch">
-                    Đã có tài khoản?{' '}
-                    <Link className="auth-link" to="/login">
-                        Đăng nhập
-                    </Link>
-                </p>
-            </section>
+                <div className="text-center mt-4">
+                    <span className="text-muted">Đã có tài khoản? </span>
+                    <Link to="/login" className="text-decoration-none fw-semibold">Đăng nhập ngay</Link>
+                </div>
+            </div>
         </div>
-    )
+    );
 }
