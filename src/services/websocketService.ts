@@ -44,7 +44,37 @@ class WebSocketService {
         };
     }
 
+    public send(payload: object): void {
+        if (this.socket && this.socket.readyState === WebSocket.OPEN) {
+            this.socket.send(JSON.stringify(payload));
+        } else {
+            console.error('[WEBSOCKET] WebSocket chưa sẵn sàng để gửi request');
+        }
+    }
+// Lắng nghe sự kiện
+    public on(action: string, callback: Function): void {
+        if (!this.listeners.has(action)) {
+            this.listeners.set(action, []);
+        }
+        this.listeners.get(action)?.push(callback);
+    }
 
+// Hủy lắng nghe sự kiện
+    public off(action: string, callback: Function): void {
+        if (this.listeners.has(action)) {
+            const arr = this.listeners.get(action);
+            if (arr) {
+                this.listeners.set(action,arr.filter((cb) => cb !== callback));
+            }
+        }
+    }
+
+    public disconnect(): void {
+        if (this.socket) {
+            this.socket.close();
+            this.socket = null;
+        }
+    }
 }
 
 export const wsService = new WebSocketService();
