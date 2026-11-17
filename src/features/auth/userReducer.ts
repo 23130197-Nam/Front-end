@@ -23,12 +23,10 @@ export const userReducer = createSlice({
     name: 'user',
     initialState,
     reducers: {
-        // Bắt đầu quá trình gửi request (Login, Register...)
         authStart: (state) => {
             state.isLoading = true;
             state.error = null;
         },
-        // Đăng nhập/Khôi phục phiên thành công
         authSuccess: (state, action: PayloadAction<{ user: User; token?: string; re_login_code?: string }>) => {
             state.isLoading = false;
             state.isAuthenticated = true;
@@ -38,16 +36,13 @@ export const userReducer = createSlice({
                 state.token = action.payload.token;
                 localStorage.setItem('chat_token', action.payload.token);
             }
-            if (action.payload.re_login_code) {
-                localStorage.setItem('re_login_code', action.payload.re_login_code);
-            }
+            if (action.payload.re_login_code) localStorage.setItem('re_login_code', action.payload.re_login_code);
         },
-        // Thất bại
         authFailure: (state, action: PayloadAction<string>) => {
             state.isLoading = false;
             state.error = action.payload;
         },
-        // Đăng xuất
+        clearLoading: (state) => {state.isLoading = false;},
         logout: (state) => {
             state.user = null;
             state.token = null;
@@ -59,5 +54,5 @@ export const userReducer = createSlice({
     },
 });
 
-export const { authStart, authSuccess, authFailure, logout } = userReducer.actions;
+export const { authStart, authSuccess, authFailure, clearLoading, logout } = userReducer.actions;
 export default userReducer.reducer;

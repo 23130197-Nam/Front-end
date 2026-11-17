@@ -1,23 +1,40 @@
-/* =========================================
-   GLOBAL STYLES FOR APP CHAT
-   ========================================= */
+$primary-color: #7C3AED;
+$primary-hover: #6D28D9;
+$accent-color: #D9F855;
+$accent-hover: #CAE744;
+$bg-body: #F7F5FC;
+$text-main: #211A2E;
+$text-secondary: #71677F;
+$border-color: #E5DFF0;
+$online-color: #38A169;
 
-/* 1. Biến màu sắc toàn cục */
-$primary-color: #0084ff;
-$bg-body: #f0f2f5;
-$text-main: #050505;
-$text-secondary: #65676b;
-$border-color: #e4e6eb;
-$online-color: #31a24c;
+:root {
+  --bs-primary: #{$primary-color};
+  --bs-primary-rgb: 124, 58, 237;
 
-/* 2. Reset mặc định */
+  --bs-body-bg: #{$bg-body};
+  --bs-body-color: #{$text-main};
+  --bs-body-color-rgb: 33, 26, 46;
+
+  --bs-light: #{$bg-body};
+  --bs-light-rgb: 247, 245, 252;
+
+  --bs-secondary-color: #{$text-secondary};
+  --bs-secondary-color-rgb: 113, 103, 127;
+  --bs-border-color: #{$border-color};
+
+  --bs-link-color: #{$primary-color};
+  --bs-link-color-rgb: 124, 58, 237;
+  --bs-link-hover-color: #{$primary-hover};
+  --bs-link-hover-color-rgb: 109, 40, 217;
+}
+
 *, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
 }
 
-/* 3. Khung nhìn gốc */
 html, body, #root {
   width: 100%;
   height: 100%;
@@ -28,7 +45,6 @@ html, body, #root {
   background-color: $bg-body;
 }
 
-/* 4. Tùy chỉnh thanh cuộn đẹp mắt */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -39,20 +55,127 @@ html, body, #root {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.15);
+  background: rgba($primary-color, 0.2);
   border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 0, 0, 0.3);
+  background: rgba($primary-color, 0.4);
 }
 
-/* 5. Tiện ích chung */
 .status-dot-online {
   width: 10px;
   height: 10px;
   background-color: $online-color;
   border-radius: 50%;
   display: inline-block;
-  border: 2px solid #fff;
+  border: 2px solid #FFFFFF;
+}
+
+.bg-custom-primary {
+  background-color: $primary-color !important;
+}
+
+.text-custom-primary {
+  color: $primary-color !important;
+}
+
+.btn-custom-primary {
+  --bs-btn-color: #FFFFFF;
+  --bs-btn-bg: #{$primary-color};
+  --bs-btn-border-color: #{$primary-color};
+
+  --bs-btn-hover-color: #FFFFFF;
+  --bs-btn-hover-bg: #{$primary-hover};
+  --bs-btn-hover-border-color: #{$primary-hover};
+
+  --bs-btn-active-color: #FFFFFF;
+  --bs-btn-active-bg: #{$primary-hover};
+  --bs-btn-active-border-color: #{$primary-hover};
+
+  --bs-btn-disabled-color: #FFFFFF;
+  --bs-btn-disabled-bg: #{$primary-color};
+  --bs-btn-disabled-border-color: #{$primary-color};
+
+  --bs-btn-focus-shadow-rgb: 124, 58, 237;
+}
+
+.btn-custom-accent {
+  --bs-btn-color: #{$text-main};
+  --bs-btn-bg: #{$accent-color};
+  --bs-btn-border-color: #{$accent-color};
+
+  --bs-btn-hover-color: #{$text-main};
+  --bs-btn-hover-bg: #{$accent-hover};
+  --bs-btn-hover-border-color: #{$accent-hover};
+
+  --bs-btn-active-color: #{$text-main};
+  --bs-btn-active-bg: #{$accent-hover};
+  --bs-btn-active-border-color: #{$accent-hover};
+
+  --bs-btn-disabled-color: #{$text-main};
+  --bs-btn-disabled-bg: #{$accent-color};
+  --bs-btn-disabled-border-color: #{$accent-color};
+
+  --bs-btn-focus-shadow-rgb: 217, 248, 85;
+}
+
+.text-custom-accent {
+  color: $primary-color !important;
+}
+
+.card,
+.form-control {
+  background-color: #FFFFFF;
+}
+
+.form-control {
+  color: $text-main;
+  border-color: $border-color;
+
+  &::placeholder {
+    color: $text-secondary;
+  }
+
+  &:focus {
+    color: $text-main;
+    background-color: #FFFFFF;
+    border-color: $primary-color;
+    box-shadow: 0 0 0 0.25rem rgba($primary-color, 0.15);
+  }
+
+  &:disabled {
+    background-color: #EDE9F4;
+    color: $text-secondary;
+  }
+}
+
+.btn-outline-secondary {
+  --bs-btn-color: #{$text-secondary};
+  --bs-btn-border-color: #{$border-color};
+
+  --bs-btn-hover-color: #{$primary-color};
+  --bs-btn-hover-bg: #EDE9F4;
+  --bs-btn-hover-border-color: #{$primary-color};
+
+  --bs-btn-active-color: #{$primary-color};
+  --bs-btn-active-bg: #EDE9F4;
+  --bs-btn-active-border-color: #{$primary-color};
+
+  --bs-btn-focus-shadow-rgb: 124, 58, 237;
+}
+
+.nav-pills {
+  --bs-nav-pills-link-active-bg: #{$primary-color};
+  --bs-nav-pills-link-active-color: #FFFFFF;
+}
+
+.nav-tabs {
+  --bs-nav-tabs-link-active-color: #{$primary-color};
+}
+
+.list-group {
+  --bs-list-group-active-bg: #{$primary-color};
+  --bs-list-group-active-border-color: #{$primary-color};
+  --bs-list-group-active-color: #FFFFFF;
 }
