@@ -4,7 +4,6 @@ import type { AppDispatch } from '../../store/store';
 
 export const loginWithWebSocket = (credentials: { username: string; password: string }, dispatch: AppDispatch) => {
     dispatch(authStart());
-
     const payload = {
         action: "onchat",
         data: {
@@ -15,13 +14,12 @@ export const loginWithWebSocket = (credentials: { username: string; password: st
             }
         }
     };
-
     wsService.send(payload);
+    console.log('[AUTH_API] login');
 };
 
 export const registerWithWebSocket = (userInfo: { username: string; password: string }, dispatch: AppDispatch) => {
     dispatch(authStart());
-
     const payload = {
         action: "onchat",
         data: {
@@ -32,6 +30,33 @@ export const registerWithWebSocket = (userInfo: { username: string; password: st
             }
         }
     };
-
     wsService.send(payload);
+    console.log('[AUTH_API] register');
+};
+
+export const reLoginWithWebSocket = (username: string, reLoginCode: string, dispatch: AppDispatch) => {
+    dispatch(authStart());
+    const payload = {
+        action: "onchat",
+        data: {
+            event: "RE_LOGIN",
+            data: {
+                user: username,
+                code: reLoginCode,
+            }
+        }
+    };
+    wsService.send(payload);
+    console.log('[AUTH_API] relogin');
+};
+
+export const logoutWithWebSocket = (dispatch: AppDispatch) => {
+    const payload = {
+        action: "onchat",
+        data: {
+            event: "LOGOUT"
+        }
+    };
+    wsService.send(payload);
+    console.log('[AUTH_API] logout');
 };
