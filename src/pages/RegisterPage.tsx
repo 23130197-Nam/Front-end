@@ -1,16 +1,14 @@
-import { useState, useEffect } from "react";
-import { useNavigate, Link } from "react-router-dom";
-import { useAppDispatch, useAppSelector } from "../store/hooks";
-import { registerWithWebSocket } from "../features/auth/authAPI";
-import { wsService } from "../services/websocketService";
-import { authFailure } from "../features/auth/userReducer";
+import { useState, useEffect } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { useAppDispatch, useAppSelector } from '../store/hooks';
+import { registerWithWebSocket } from '../features/auth/authAPI';
+import { wsService } from '../services/websocketService';
+import { authFailure } from '../features/auth/userReducer';
 
 export default function RegisterPage() {
     const [formData, setFormData] = useState({
         username: '',
         password: '',
-        full_name: '',
-        phone_number: '',
     });
 
     const dispatch = useAppDispatch();
@@ -25,7 +23,7 @@ export default function RegisterPage() {
                 alert('Đăng ký tài khoản thành công! Vui lòng đăng nhập.');
                 navigate('/login');
             } else {
-                dispatch(authFailure(response.message || 'Đăng ký thất bại!'));
+                dispatch(authFailure(response.mes || 'Đăng ký thất bại!'));
             }
         };
 
@@ -42,16 +40,16 @@ export default function RegisterPage() {
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        if (!formData.username || !formData.password || !formData.full_name) {
-            alert('Vui lòng điền đầy đủ các trường bắt buộc!');
+        if (!formData.username || !formData.password) {
+            alert('Vui lòng điền đầy đủ tài khoản và mật khẩu!');
             return;
         }
-        registerWithWebSocket(formData, dispatch, () => {});
+        registerWithWebSocket(formData, dispatch);
     };
 
     return (
         <div className="container-fluid vh-100 d-flex align-items-center justify-content-center bg-light">
-            <div className="card shadow-lg p-4 border-0 rounded-4" style={{ width: '100%', maxWidth: '450px' }}>
+            <div className="card shadow-lg p-4 border-0 rounded-4" style={{ width: '100%', maxWidth: '420px' }}>
                 <div className="text-center mb-4">
                     <h2 className="fw-bold text-success">Đăng Ký Tài Khoản</h2>
                     <p className="text-muted">Tham gia cùng cộng đồng trò chuyện ngay hôm nay</p>
@@ -61,32 +59,19 @@ export default function RegisterPage() {
 
                 <form onSubmit={handleSubmit}>
                     <div className="mb-3">
-                        <label className="form-label fw-semibold">Họ và tên</label>
-                        <input
-                            type="text"
-                            name="full_name"
-                            className="form-control"
-                            placeholder="Nhập họ tên của bạn..."
-                            value={formData.full_name}
-                            onChange={handleChange}
-                            required
-                        />
-                    </div>
-
-                    <div className="mb-3">
                         <label className="form-label fw-semibold">Tên tài khoản (Username)</label>
                         <input
                             type="text"
                             name="username"
                             className="form-control"
-                            placeholder="Chọn username..."
+                            placeholder="Nhập username..."
                             value={formData.username}
                             onChange={handleChange}
                             required
                         />
                     </div>
 
-                    <div className="mb-3">
+                    <div className="mb-4">
                         <label className="form-label fw-semibold">Mật khẩu</label>
                         <input
                             type="password"
@@ -96,18 +81,6 @@ export default function RegisterPage() {
                             value={formData.password}
                             onChange={handleChange}
                             required
-                        />
-                    </div>
-
-                    <div className="mb-4">
-                        <label className="form-label fw-semibold">Số điện thoại (Tùy chọn)</label>
-                        <input
-                            type="text"
-                            name="phone_number"
-                            className="form-control"
-                            placeholder="Nhập số điện thoại..."
-                            value={formData.phone_number}
-                            onChange={handleChange}
                         />
                     </div>
 
