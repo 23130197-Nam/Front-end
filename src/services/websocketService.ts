@@ -1,17 +1,14 @@
 class WebSocketService {
     private socket: WebSocket | null = null;
-    private url: string = 'https://chat.longapp.io.vn';
+    private url: string = 'wss://chat.longapp.io.vn/chat/chat';
     private reconnectInterval: number = 3000;
     private listeners: Map<string, Function[]> = new Map();
 
     constructor() {
-        // Có thể khởi tạo sẵn hoặc kết nối khi người dùng đăng nhập
     }
 
     public connect(): void {
-        if (this.socket && (this.socket.readyState === WebSocket.OPEN || this.socket.readyState === WebSocket.CONNECTING)) {
-            return;
-        }
+        if (this.socket && (this.socket.readyState === WebSocket.OPEN || this.socket.readyState === WebSocket.CONNECTING)) return;
         this.socket = new WebSocket(this.url);
 //     Kết nối đã mở
         this.socket.onopen = () => {console.log('[WEBSOCKET] Kết nối WebSocket thành công!');};
@@ -19,24 +16,15 @@ class WebSocketService {
         this.socket.onmessage = (event) => {
             try {
                 const response = JSON.parse(event.data);
-                const { action } = response;
-
-                if (action && this.listeners.has(action)) {
-                    this.listeners.get(action)?.forEach((callback) => callback(response));
-                }
-                // Lắng nghe một kênh sự kiện chung 'message' nếu có
-                if (this.listeners.has('global_message')) {
-                    this.listeners.get('global_message')?.forEach((callback) => callback(response));
-                }
+                console.log('[WEBSOCKET] Nhận dữ liệu:', response);
+                const messageEvent = response.event || response.action;
+                if (messageEvent && this.listeners.has(messageEvent)) this.listeners.get(messageEvent)?.forEach((callback) => callback(response));
+                if (this.listeners.has('global_message')) this.listeners.get('global_message')?.forEach((callback) => callback(response));
             } catch (error) {
-                console.error('[WEBSOCKET] [ERORR] Lỗi hàm onmessage():', error);
+                console.error('[WEBSOCKET] [ERROR] Lỗi hàm onmessage():', error);
             }
         };
-
-        this.socket.onerror = (error) => {
-            console.error('[WEBSOCKET] [ERROR] Lỗi hàm onerror():', error);
-        };
-
+        this.socket.onerror = (error) => {console.error('[WEBSOCKET] [ERROR] Lỗi hàm onerror():', error);};
         this.socket.onclose = () => {
             console.warn('[WEBSOCKET] [WARNING] Đang có gắng kết nối lại');
             this.socket = null;
@@ -45,17 +33,12 @@ class WebSocketService {
     }
 
     public send(payload: object): void {
-        if (this.socket && this.socket.readyState === WebSocket.OPEN) {
-            this.socket.send(JSON.stringify(payload));
-        } else {
-            console.error('[WEBSOCKET] WebSocket chưa sẵn sàng để gửi request');
-        }
+        if (this.socket && this.socket.readyState === WebSocket.OPEN) this.socket.send(JSON.stringify(payload));
+        else console.error('[WEBSOCKET] WebSocket chưa sẵn sàng để gửi request');
     }
 // Lắng nghe sự kiện
     public on(action: string, callback: Function): void {
-        if (!this.listeners.has(action)) {
-            this.listeners.set(action, []);
-        }
+        if (!this.listeners.has(action)) this.listeners.set(action, []);
         this.listeners.get(action)?.push(callback);
     }
 
@@ -63,9 +46,7 @@ class WebSocketService {
     public off(action: string, callback: Function): void {
         if (this.listeners.has(action)) {
             const arr = this.listeners.get(action);
-            if (arr) {
-                this.listeners.set(action,arr.filter((cb) => cb !== callback));
-            }
+            if (arr) this.listeners.set(action,arr.filter((cb) => cb !== callback));
         }
     }
 
