@@ -3,6 +3,7 @@ class WebSocketService {
     private url: string = 'wss://chat.longapp.io.vn/chat/chat';
     private reconnectInterval: number = 3000;
     private listeners: Map<string, Function[]> = new Map();
+    private messageQueue: string[] = [];
 
     constructor() {
     }
@@ -11,7 +12,16 @@ class WebSocketService {
         if (this.socket && (this.socket.readyState === WebSocket.OPEN || this.socket.readyState === WebSocket.CONNECTING)) return;
         this.socket = new WebSocket(this.url);
 //     Kết nối đã mở
-        this.socket.onopen = () => {console.log('[WEBSOCKET] Kết nối WebSocket thành công!');};
+        this.socket.onopen = () => {
+            console.log('[WEBSOCKET] Kết nối WebSocket thành công!');
+            if (this.messageQueue.length > 0) {
+                console.log(`[WEBSOCKET] [QUEUE] Đang gửi ${this.messageQueue.length} message`);
+                while (this.messageQueue.length > 0) {
+                    const msg = this.messageQueue.shift();
+                    if (msg && this.socket) this.socket.send(msg);
+                }
+            }
+        };
 //      Nhận dữ liệu từ server
         this.socket.onmessage = (event) => {
             try {
@@ -33,8 +43,15 @@ class WebSocketService {
     }
 
     public send(payload: object): void {
-        if (this.socket && this.socket.readyState === WebSocket.OPEN) this.socket.send(JSON.stringify(payload));
-        else console.error('[WEBSOCKET] WebSocket chưa sẵn sàng để gửi request');
+        const jsonString = JSON.stringify(payload);
+        if (this.socket && this.socket.readyState === WebSocket.OPEN) this.socket.send(jsonString);
+        else {
+            if (!this.messageQueue.includes(jsonString)) {
+                console.warn('[WEBSOCKET] WebSocket chưa sẵn sàng -> Thêm QUEUE');
+                this.messageQueue.push(jsonString);
+            } else console.warn('[WEBSOCKET] Request đã có trong QUEUE');
+            if (!this.socket || this.socket.readyState === WebSocket.CLOSED) this.connect();
+        }
     }
 // Lắng nghe sự kiện
     public on(action: string, callback: Function): void {
