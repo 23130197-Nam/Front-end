@@ -1,27 +1,45 @@
+export type ConversationType = 0 | 1;
+
+export interface ConversationSummary {
+  name: string;
+  type: ConversationType;
+  actionTime: string;
+}
+
+export interface RoomMember {
+  id: number;
+  name?: string;
+}
+
+export interface RoomData {
+  name: string;
+  user: RoomMember[];
+}
+
+export interface WebSocketSuccessResponse<TData> {
+  status: 'success';
+  event: string;
+  data: TData;
+}
+
+export interface WebSocketErrorResponse {
+  status: 'error';
+  event: string;
+  mes: string;
+}
+
+export type WebSocketResponse<TData> =
+  | WebSocketSuccessResponse<TData>
+  | WebSocketErrorResponse;
+
+export type GetUserListResponse = WebSocketResponse<ConversationSummary[]>;
+export type CreateRoomResponse = WebSocketResponse<RoomData>;
+
 export interface Message {
-  id_message?: number;
-  sender_id: number;
-  receiver_id?: number;
-  room_id?: number;
-  content: string;
-  created_at?: string;
-  sender_name?: string;
-}
-
-export interface ChatRoom {
-  id_room: number;
-  room_name?: string;
-  is_group: boolean;
-  last_message?: string;
-  updated_at?: string;
-}
-
-export interface ChatPayload {
-  action: 'SEND_MESSAGE' | 'GET_ROOMS' | 'GET_MESSAGES' | 'JOIN_ROOM';
-  data: {
-    room_id?: number;
-    receiver_id?: number;
-    content?: string;
-    [key: string]: any;
-  };
+  id: number;
+  name: string;
+  to: string;
+  mes: string;
+  createAt: string;
+  type: ConversationType;
 }
