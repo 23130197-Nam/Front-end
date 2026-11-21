@@ -50,7 +50,7 @@ export const reLoginWithWebSocket = (username: string, reLoginCode: string, disp
     console.log('[AUTH_API] relogin');
 };
 
-export const logoutWithWebSocket = (dispatch: AppDispatch) => {
+export const logoutWithWebSocket = () => {
     const payload = {
         action: "onchat",
         data: {

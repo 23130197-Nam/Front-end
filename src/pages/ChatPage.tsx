@@ -4,11 +4,20 @@ import { useAppSelector, useAppDispatch } from '../store/hooks';
 import { logout, authSuccess } from '../features/auth/userReducer';
 import { wsService } from '../services/websocketService';
 import { reLoginWithWebSocket, logoutWithWebSocket } from '../features/auth/authAPI';
+import { useConversationList } from '../features/chat/hooks/useConversationList';
+import ConversationList from '../features/chat/components/ConversationList';
+import CreateRoomModal from '../features/chat/components/CreateRoomModal';
 
 export default function ChatPage() {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const { isAuthenticated, user } = useAppSelector((state) => state.user);
+  const {
+    conversations,
+    isLoading: isLoadingConversations,
+    error: conversationError,
+    refreshConversations,
+  } = useConversationList(isAuthenticated);
 
   useEffect(() => {
     wsService.connect();
@@ -52,14 +61,24 @@ export default function ChatPage() {
       <div className="container-fluid flex-grow-1 p-4 overflow-hidden">
         <div className="row h-100 bg-white rounded-4 shadow-sm overflow-hidden">
           <div className="col-md-4 border-end p-3 d-flex flex-column" style={{ height: 'calc(100vh - 100px)' }}>
-            <h5 className="fw-bold mb-3" style={{ color: '#211A2E' }}>Danh sách phòng</h5>
-            <div className="input-group mb-3">
-              <input type="text" className="form-control" placeholder="Tìm kiếm bạn bè, phòng..." />
-              <button className="btn btn-outline-secondary" type="button"><i className="bi bi-search"></i></button>
+            <div className="d-flex align-items-center justify-content-between mb-3">
+              <h5 className="fw-bold mb-0" style={{ color: '#211A2E' }}>Trò chuyện</h5>
+              <button
+                className="btn btn-custom-primary btn-sm"
+                type="button"
+                data-bs-toggle="modal"
+                data-bs-target="#createRoomModal"
+              >
+                <i className="bi bi-plus-circle me-1"></i>
+                Tạo phòng
+              </button>
             </div>
-            <div className="overflow-auto flex-grow-1">
-              <p className="text-muted text-center mt-5">Chưa có phòng chat nào!</p>
-            </div>
+            <ConversationList
+              conversations={conversations}
+              isLoading={isLoadingConversations}
+              error={conversationError}
+              onRefresh={refreshConversations}
+            />
           </div>
 
           <div className="col-md-8 d-flex flex-column p-0" style={{ height: 'calc(100vh - 100px)' }}>
@@ -77,6 +96,7 @@ export default function ChatPage() {
           </div>
         </div>
       </div>
+      <CreateRoomModal onCreated={refreshConversations} />
     </div>
   );
 }
