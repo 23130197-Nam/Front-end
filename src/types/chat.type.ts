@@ -29,11 +29,13 @@ export interface WebSocketErrorResponse {
 }
 
 export type WebSocketResponse<TData> =
-  | WebSocketSuccessResponse<TData>
-  | WebSocketErrorResponse;
+    | WebSocketSuccessResponse<TData>
+    | WebSocketErrorResponse;
 
 export type GetUserListResponse = WebSocketResponse<ConversationSummary[]>;
 export type CreateRoomResponse = WebSocketResponse<RoomData>;
+export type JoinRoomResponse = WebSocketResponse<RoomData>;
+export type OutRoomResponse = WebSocketResponse<{ mes: string }>;
 
 export interface Message {
   id: number;
