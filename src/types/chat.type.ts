@@ -52,3 +52,14 @@ export interface GetPeopleChatMessagesRequest {
 }
 
 export type GetPeopleChatMessagesResponse = WebSocketResponse<Message[]>;
+
+export interface GetRoomChatMessagesRequest {
+  name: string;
+  page: number;
+}
+
+export interface RoomChatHistoryData extends RoomData {
+  chatMess: Message[];
+}
+
+export type GetRoomChatMessagesResponse = WebSocketResponse<RoomChatHistoryData>;
