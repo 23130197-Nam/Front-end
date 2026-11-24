@@ -9,6 +9,7 @@ import ConversationList from '../features/chat/components/ConversationList';
 import CreateRoomModal from '../features/chat/components/CreateRoomModal';
 import JoinRoomModal from '../features/chat/components/JoinRoomModal';
 import LeaveRoomModal from '../features/chat/components/LeaveRoomModal';
+import PeopleMessageHistory from '../features/chat/components/PeopleMessageHistory';
 import type { ConversationSummary } from '../types/chat.type';
 
 export default function ChatPage() {
@@ -122,7 +123,16 @@ export default function ChatPage() {
                 )}
               </div>
               <div className="flex-grow-1 p-3 overflow-auto bg-light">
-                <div className="text-center text-muted my-auto"><p>Chọn một đoạn chat để bắt đầu nhắn tin qua WebSocket.</p></div>
+                {selectedConversation?.type === 0 ? (
+                    <PeopleMessageHistory
+                        key={selectedConversation.name}
+                        name={selectedConversation.name}
+                        currentUsername={user?.username || localStorage.getItem('chat_username') || ''}
+                        enabled={isAuthenticated}
+                    />
+                ) : (
+                    <div className="text-center text-muted my-auto"><p>Chọn một đoạn chat để bắt đầu nhắn tin qua WebSocket.</p></div>
+                )}
               </div>
 
               <div className="p-3 bg-white border-top">
