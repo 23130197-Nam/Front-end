@@ -1,0 +1,51 @@
+.people-message-history {
+  min-width: 0;
+  color: #211A2E;
+
+  &__status,
+  &__sender,
+  &__time {
+    color: #71677F;
+  }
+
+  &__error {
+    --bs-alert-color: #DC3545;
+    --bs-alert-bg: #F8D7DA;
+    --bs-alert-border-color: #DC3545;
+    overflow-wrap: anywhere;
+  }
+
+  &__item {
+    min-width: 0;
+    max-width: 85%;
+    overflow-wrap: anywhere;
+  }
+
+  &__bubble {
+    min-width: 0;
+    max-width: 100%;
+    background-color: #EDE9F4;
+    border: 1px solid #E5DFF0;
+  }
+
+  &__bubble--own {
+    color: #FFFFFF;
+    background-color: #7C3AED;
+    border-color: #7C3AED;
+
+    .people-message-history__time {
+      color: #FFFFFF;
+    }
+  }
+
+  &__text {
+    white-space: pre-wrap;
+    line-height: 1.6;
+  }
+
+  @media (max-width: 767.98px) {
+    &__item {
+      max-width: 95%;
+    }
+  }
+}
