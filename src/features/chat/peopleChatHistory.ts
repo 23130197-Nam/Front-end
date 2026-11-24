@@ -3,7 +3,18 @@ import type { GetPeopleChatMessagesResponse, Message } from '../../types/chat.ty
 import { getPeopleChatMessagesWithWebSocket, PEOPLE_CHAT_HISTORY_EVENT } from './chatAPI';
 
 const HISTORY_TIMEOUT_MS = 15000;
+export const PEOPLE_CHAT_PAGE_SIZE = 50;
 let requestQueue: Promise<void> = Promise.resolve();
+
+const compareMessages = (first: Message, second: Message): number =>
+    first.createAt.localeCompare(second.createAt) || first.id - second.id;
+
+export const mergePeopleChatMessages = (current: Message[], older: Message[]): Message[] => {
+  const messagesById = new Map<number, Message>();
+  older.forEach((message) => messagesById.set(message.id, message));
+  current.forEach((message) => messagesById.set(message.id, message));
+  return [...messagesById.values()].sort(compareMessages);
+};
 
 const isMessage = (value: unknown): value is Message => {
   if (typeof value !== 'object' || value === null) return false;
@@ -21,6 +32,7 @@ export const getPeopleChatHistory = (
   name: string,
   currentUsername: string,
   signal: AbortSignal,
+  page: number = 1,
 ): Promise<Message[]> => {
   // API không có request ID: xử lý lần lượt để phản hồi cũ không lẫn sang người mới.
   const request = requestQueue.then(() => {
@@ -62,9 +74,7 @@ export const getPeopleChatHistory = (
         );
         if (!belongsToConversation) return;
 
-        const messages = [...response.data].sort((first, second) =>
-            first.createAt.localeCompare(second.createAt) || first.id - second.id,
-        );
+        const messages = [...response.data].sort(compareMessages);
         finish(null, messages);
       };
 
@@ -75,7 +85,7 @@ export const getPeopleChatHistory = (
       wsService.on(PEOPLE_CHAT_HISTORY_EVENT, handleResponse);
 
       try {
-        getPeopleChatMessagesWithWebSocket(name, 1);
+        getPeopleChatMessagesWithWebSocket(name, page);
       } catch (error) {
         finish(error instanceof Error ? error : new Error('Không thể gửi yêu cầu tin nhắn.'));
       }
