@@ -15,6 +15,22 @@
     overflow-wrap: anywhere;
   }
 
+  &__load-older {
+    --bs-btn-color: #7C3AED;
+    --bs-btn-bg: #FFFFFF;
+    --bs-btn-border-color: #E5DFF0;
+    --bs-btn-hover-color: #FFFFFF;
+    --bs-btn-hover-bg: #6D28D9;
+    --bs-btn-hover-border-color: #6D28D9;
+    --bs-btn-active-color: #FFFFFF;
+    --bs-btn-active-bg: #6D28D9;
+    --bs-btn-active-border-color: #6D28D9;
+    --bs-btn-disabled-color: #71677F;
+    --bs-btn-disabled-bg: #EDE9F4;
+    --bs-btn-disabled-border-color: #E5DFF0;
+    --bs-btn-focus-shadow-rgb: 124, 58, 237;
+  }
+
   &__item {
     min-width: 0;
     max-width: 85%;

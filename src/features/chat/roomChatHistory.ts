@@ -12,7 +12,18 @@ import {
 } from './roomAPI';
 
 const HISTORY_TIMEOUT_MS = 15000;
+export const ROOM_CHAT_PAGE_SIZE = 50;
 let requestQueue: Promise<void> = Promise.resolve();
+
+const compareMessages = (first: Message, second: Message): number =>
+    first.createAt.localeCompare(second.createAt) || first.id - second.id;
+
+export const mergeRoomChatMessages = (current: Message[], older: Message[]): Message[] => {
+  const messagesById = new Map<number, Message>();
+  older.forEach((message) => messagesById.set(message.id, message));
+  current.forEach((message) => messagesById.set(message.id, message));
+  return [...messagesById.values()].sort(compareMessages);
+};
 
 const isRoomMember = (value: unknown): value is RoomMember => {
   if (typeof value !== 'object' || value === null) return false;
@@ -38,7 +49,6 @@ export const getRoomChatHistory = (
   page: number = 1,
 ): Promise<RoomChatHistoryData> => {
   const roomName = name.trim();
-  // Tuần tự hóa request để lỗi của phòng cũ không gán sang phòng vừa chọn.
   const request = requestQueue.then(() => {
     signal.throwIfAborted();
 
@@ -58,7 +68,6 @@ export const getRoomChatHistory = (
       };
 
       const handleSuccess = (response: GetRoomChatMessagesResponse) => {
-        // Lịch sử cá nhân dùng cùng event nhưng data là mảng; lỗi phòng có event riêng.
         if (response.status !== 'success' || typeof response.data !== 'object' ||
             response.data === null || Array.isArray(response.data)) return;
 
@@ -72,9 +81,7 @@ export const getRoomChatHistory = (
           return;
         }
 
-        const chatMess = [...data.chatMess].sort((first, second) =>
-            first.createAt.localeCompare(second.createAt) || first.id - second.id,
-        );
+        const chatMess = [...data.chatMess].sort(compareMessages);
         finish(null, { ...data, chatMess });
       };
 
@@ -99,7 +106,6 @@ export const getRoomChatHistory = (
     });
   });
 
-  // Giữ listener đến phản hồi hoặc timeout kể cả khi UI đã hủy yêu cầu cũ.
   requestQueue = request.then(() => undefined, () => undefined);
   return request;
 };
