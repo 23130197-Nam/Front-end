@@ -1,3 +1,4 @@
+import { useLayoutEffect, useRef } from 'react';
 import { usePeopleChatMessages } from '../hooks/usePeopleChatMessages';
 import './PeopleMessageHistory.scss';
 
@@ -12,10 +13,43 @@ export default function PeopleMessageHistory({
   currentUsername,
   enabled,
 }: PeopleMessageHistoryProps) {
-  const { messages, isLoading, error, retry } = usePeopleChatMessages(name, currentUsername, enabled);
+  const {
+    messages,
+    isLoading,
+    error,
+    retry,
+    hasMore,
+    isLoadingOlder,
+    olderError,
+    loadOlder,
+  } = usePeopleChatMessages(name, currentUsername, enabled);
+  const historyRef = useRef<HTMLDivElement>(null);
+  const scrollPosition = useRef<{
+    element: HTMLElement;
+    height: number;
+    top: number;
+  } | null>(null);
+
+  const handleLoadOlder = () => {
+    if (isLoadingOlder || scrollPosition.current) return;
+
+    const element = historyRef.current?.parentElement;
+    if (element) {
+      scrollPosition.current = { element, height: element.scrollHeight, top: element.scrollTop };
+    }
+    loadOlder();
+  };
+
+  useLayoutEffect(() => {
+    if (isLoadingOlder || !scrollPosition.current) return;
+
+    const { element, height, top } = scrollPosition.current;
+    element.scrollTop = top + element.scrollHeight - height;
+    scrollPosition.current = null;
+  }, [messages, isLoadingOlder, olderError, hasMore]);
 
   return (
-      <div className="people-message-history" aria-busy={isLoading}>
+      <div ref={historyRef} className="people-message-history" aria-busy={isLoading || isLoadingOlder}>
         {(!enabled || !currentUsername || isLoading) ? (
             <div className="people-message-history__status text-center py-4" role="status">
               <span className="spinner-border spinner-border-sm me-2 text-custom-primary" aria-hidden="true"></span>
@@ -35,7 +69,32 @@ export default function PeopleMessageHistory({
               <p className="mb-0">Chưa có tin nhắn với {name}.</p>
             </div>
         ) : (
-            <ol className="list-unstyled d-flex flex-column gap-3 mb-0" aria-label={`Lịch sử tin nhắn với ${name}`}>
+            <>
+              <div className="text-center mb-3">
+                {hasMore ? (
+                    <button
+                        className="people-message-history__load-older btn btn-sm"
+                        type="button"
+                        onClick={handleLoadOlder}
+                        disabled={isLoadingOlder}
+                    >
+                      {isLoadingOlder && (
+                          <span className="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>
+                      )}
+                      {isLoadingOlder ? 'Đang tải tin nhắn cũ...' : olderError ? 'Thử tải lại tin nhắn cũ' : 'Tải tin nhắn cũ'}
+                    </button>
+                ) : (
+                    <p className="people-message-history__status small mb-0">
+                      Đã hiển thị toàn bộ tin nhắn.
+                    </p>
+                )}
+              </div>
+              {olderError && (
+                  <div className="people-message-history__error alert py-2 small" role="alert">
+                    {olderError}
+                  </div>
+              )}
+              <ol className="list-unstyled d-flex flex-column gap-3 mb-0" aria-label={`Lịch sử tin nhắn với ${name}`}>
               {messages.map((message) => {
                 const isOwn = message.name === currentUsername;
                 const date = new Date(message.createAt.replace(' ', 'T'));
@@ -69,7 +128,8 @@ export default function PeopleMessageHistory({
                     </li>
                 );
               })}
-            </ol>
+              </ol>
+            </>
         )}
       </div>
   );
