@@ -45,3 +45,10 @@ export interface Message {
   createAt: string;
   type: ConversationType;
 }
+
+export interface GetPeopleChatMessagesRequest {
+  name: string;
+  page: number;
+}
+
+export type GetPeopleChatMessagesResponse = WebSocketResponse<Message[]>;
