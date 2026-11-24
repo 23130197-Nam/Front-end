@@ -1,0 +1,67 @@
+.room-message-history {
+  min-width: 0;
+  color: #211A2E;
+
+  &__status,
+  &__sender,
+  &__time {
+    color: #71677F;
+  }
+
+  &__error {
+    --bs-alert-color: #DC3545;
+    --bs-alert-bg: #F8D7DA;
+    --bs-alert-border-color: #DC3545;
+    overflow-wrap: anywhere;
+  }
+
+  &__load-older {
+    --bs-btn-color: #7C3AED;
+    --bs-btn-bg: #FFFFFF;
+    --bs-btn-border-color: #E5DFF0;
+    --bs-btn-hover-color: #FFFFFF;
+    --bs-btn-hover-bg: #6D28D9;
+    --bs-btn-hover-border-color: #6D28D9;
+    --bs-btn-active-color: #FFFFFF;
+    --bs-btn-active-bg: #6D28D9;
+    --bs-btn-active-border-color: #6D28D9;
+    --bs-btn-disabled-color: #71677F;
+    --bs-btn-disabled-bg: #EDE9F4;
+    --bs-btn-disabled-border-color: #E5DFF0;
+    --bs-btn-focus-shadow-rgb: 124, 58, 237;
+  }
+
+  &__item {
+    min-width: 0;
+    max-width: 85%;
+    overflow-wrap: anywhere;
+  }
+
+  &__bubble {
+    min-width: 0;
+    max-width: 100%;
+    background-color: #EDE9F4;
+    border: 1px solid #E5DFF0;
+  }
+
+  &__bubble--own {
+    color: #FFFFFF;
+    background-color: #7C3AED;
+    border-color: #7C3AED;
+
+    .room-message-history__time {
+      color: #FFFFFF;
+    }
+  }
+
+  &__text {
+    white-space: pre-wrap;
+    line-height: 1.6;
+  }
+
+  @media (max-width: 767.98px) {
+    &__item {
+      max-width: 95%;
+    }
+  }
+}

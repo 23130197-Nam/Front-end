@@ -10,6 +10,7 @@ import CreateRoomModal from '../features/chat/components/CreateRoomModal';
 import JoinRoomModal from '../features/chat/components/JoinRoomModal';
 import LeaveRoomModal from '../features/chat/components/LeaveRoomModal';
 import PeopleMessageHistory from '../features/chat/components/PeopleMessageHistory';
+import RoomMessageHistory from '../features/chat/components/RoomMessageHistory';
 import type { ConversationSummary } from '../types/chat.type';
 
 export default function ChatPage() {
@@ -125,6 +126,13 @@ export default function ChatPage() {
               <div className="flex-grow-1 p-3 overflow-auto bg-light">
                 {selectedConversation?.type === 0 ? (
                     <PeopleMessageHistory
+                        key={selectedConversation.name}
+                        name={selectedConversation.name}
+                        currentUsername={user?.username || localStorage.getItem('chat_username') || ''}
+                        enabled={isAuthenticated}
+                    />
+                ) : selectedConversation?.type === 1 ? (
+                    <RoomMessageHistory
                         key={selectedConversation.name}
                         name={selectedConversation.name}
                         currentUsername={user?.username || localStorage.getItem('chat_username') || ''}
