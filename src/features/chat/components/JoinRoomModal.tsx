@@ -1,62 +1,30 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import type { FormEvent } from 'react';
-import { wsService } from '../../../services/websocketService';
-import type { JoinRoomResponse } from '../../../types/chat.type';
-import { joinRoomWithWebSocket } from '../roomAPI';
+import type { RoomOperationState } from '../chatReducer';
 
 interface JoinRoomModalProps {
-  onJoined: () => void;
+  operation: RoomOperationState;
+  onJoin: (roomName: string) => void;
+  onReset: () => void;
 }
 
-interface Feedback {
-  type: 'success' | 'danger';
-  message: string;
-}
-
-export default function JoinRoomModal({ onJoined }: JoinRoomModalProps) {
+export default function JoinRoomModal({
+  operation,
+  onJoin,
+  onReset,
+}: JoinRoomModalProps) {
   const [roomName, setRoomName] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [feedback, setFeedback] = useState<Feedback | null>(null);
-
-  useEffect(() => {
-    const handleJoinRoom = (response: JoinRoomResponse) => {
-      console.log('[JOIN_ROOM] Response:', response);
-      setIsSubmitting(false);
-
-      if (response.status === 'success') {
-        setRoomName('');
-        setFeedback({
-          type: 'success',
-          message: `Đã tham gia phòng “${response.data.name}” thành công.`,
-        });
-        onJoined();
-        return;
-      }
-
-      setFeedback({
-        type: 'danger',
-        message: response.mes || 'Không thể tham gia phòng chat.',
-      });
-    };
-
-    wsService.on('JOIN_ROOM', handleJoinRoom);
-    return () => {
-      wsService.off('JOIN_ROOM', handleJoinRoom);
-    };
-  }, [onJoined]);
+  const isSubmitting = operation.status === 'loading';
+  const displayedRoomName = operation.status === 'succeeded' ? '' : roomName;
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const normalizedRoomName = roomName.trim();
+    onJoin(displayedRoomName);
+  };
 
-    if (!normalizedRoomName) {
-      setFeedback({ type: 'danger', message: 'Vui lòng nhập tên phòng.' });
-      return;
-    }
-
-    setFeedback(null);
-    setIsSubmitting(true);
-    joinRoomWithWebSocket(normalizedRoomName);
+  const handleRoomNameChange = (value: string) => {
+    setRoomName(value);
+    if (operation.status !== 'idle') onReset();
   };
 
   return (
@@ -88,15 +56,18 @@ export default function JoinRoomModal({ onJoined }: JoinRoomModalProps) {
               id="joinRoomName"
               type="text"
               className="form-control"
-              value={roomName}
-              onChange={(event) => setRoomName(event.target.value)}
+              value={displayedRoomName}
+              onChange={(event) => handleRoomNameChange(event.target.value)}
               placeholder="Nhập chính xác tên phòng..."
               disabled={isSubmitting}
               autoComplete="off"
             />
-            {feedback && (
-              <div className={`alert alert-${feedback.type} py-2 mt-3 mb-0`} role="alert">
-                {feedback.message}
+            {operation.message && (
+              <div
+                className={`alert alert-${operation.status === 'succeeded' ? 'success' : 'danger'} py-2 mt-3 mb-0`}
+                role="alert"
+              >
+                {operation.message}
               </div>
             )}
           </div>

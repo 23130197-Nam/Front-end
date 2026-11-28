@@ -1,29 +1,40 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppSelector, useAppDispatch } from '../store/hooks';
 import { logout, authSuccess } from '../features/auth/userReducer';
 import { wsService } from '../services/websocketService';
 import { reLoginWithWebSocket, logoutWithWebSocket } from '../features/auth/authAPI';
 import { useConversationList } from '../features/chat/hooks/useConversationList';
+import { useRoomManagement } from '../features/chat/hooks/useRoomManagement';
+import {
+  chatCleared,
+  conversationSelected,
+} from '../features/chat/chatReducer';
 import ConversationList from '../features/chat/components/ConversationList';
 import CreateRoomModal from '../features/chat/components/CreateRoomModal';
 import JoinRoomModal from '../features/chat/components/JoinRoomModal';
 import LeaveRoomModal from '../features/chat/components/LeaveRoomModal';
 import PeopleMessageHistory from '../features/chat/components/PeopleMessageHistory';
 import RoomMessageHistory from '../features/chat/components/RoomMessageHistory';
-import type { ConversationSummary } from '../types/chat.type';
 
 export default function ChatPage() {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const { isAuthenticated, user } = useAppSelector((state) => state.user);
-  const [selectedConversation, setSelectedConversation] = useState<ConversationSummary | null>(null);
+  const selectedConversation = useAppSelector((state) => state.chat.selectedConversation,);
   const {
     conversations,
     isLoading: isLoadingConversations,
     error: conversationError,
     refreshConversations,
   } = useConversationList(isAuthenticated);
+  const {
+    operations,
+    createRoom,
+    joinRoom,
+    leaveRoom,
+    resetOperation,
+  } = useRoomManagement(refreshConversations);
 
   useEffect(() => {
     wsService.connect();
@@ -39,6 +50,7 @@ export default function ChatPage() {
       } else {
         console.warn('[RE_LOGIN] Phiên đăng nhập hết hạn:', response.mes);
         localStorage.clear();
+        dispatch(chatCleared());
         dispatch(logout());
         navigate('/login');
       }
@@ -49,15 +61,11 @@ export default function ChatPage() {
 
   const handleLogout = () => {
     logoutWithWebSocket();
+    dispatch(chatCleared());
     dispatch(logout());
     localStorage.clear();
     navigate('/login');
   };
-
-  const handleLeftRoom = useCallback(() => {
-    setSelectedConversation(null);
-    refreshConversations();
-  }, [refreshConversations]);
 
   return (
       <div className="container-fluid vh-100 d-flex flex-column bg-light p-0">
@@ -80,6 +88,7 @@ export default function ChatPage() {
                       type="button"
                       data-bs-toggle="modal"
                       data-bs-target="#joinRoomModal"
+                      onClick={() => resetOperation('join')}
                   >
                     <i className="bi bi-box-arrow-in-right me-1"></i>
                     Tham gia
@@ -89,6 +98,7 @@ export default function ChatPage() {
                       type="button"
                       data-bs-toggle="modal"
                       data-bs-target="#createRoomModal"
+                      onClick={() => resetOperation('create')}
                   >
                     <i className="bi bi-plus-circle me-1"></i>
                     Tạo phòng
@@ -100,7 +110,7 @@ export default function ChatPage() {
                   selectedConversation={selectedConversation}
                   isLoading={isLoadingConversations}
                   error={conversationError}
-                  onSelect={setSelectedConversation}
+                  onSelect={(conversation) => dispatch(conversationSelected(conversation))}
                   onRefresh={refreshConversations}
               />
             </div>
@@ -117,6 +127,7 @@ export default function ChatPage() {
                         type="button"
                         data-bs-toggle="modal"
                         data-bs-target="#leaveRoomModal"
+                        onClick={() => resetOperation('leave')}
                     >
                       <i className="bi bi-box-arrow-right me-1"></i>
                       Rời phòng
@@ -152,11 +163,20 @@ export default function ChatPage() {
             </div>
           </div>
         </div>
-        <CreateRoomModal onCreated={refreshConversations} />
-        <JoinRoomModal onJoined={refreshConversations} />
+        <CreateRoomModal
+            operation={operations.create}
+            onCreate={createRoom}
+            onReset={() => resetOperation('create')}
+        />
+        <JoinRoomModal
+            operation={operations.join}
+            onJoin={joinRoom}
+            onReset={() => resetOperation('join')}
+        />
         <LeaveRoomModal
             roomName={selectedConversation?.type === 1 ? selectedConversation.name : null}
-            onLeft={handleLeftRoom}
+            operation={operations.leave}
+            onLeave={leaveRoom}
         />
       </div>
   );

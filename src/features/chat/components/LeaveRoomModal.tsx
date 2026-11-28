@@ -1,58 +1,17 @@
-import { useEffect, useState } from 'react';
-import { wsService } from '../../../services/websocketService';
-import type { OutRoomResponse } from '../../../types/chat.type';
-import { outRoomWithWebSocket } from '../roomAPI';
+import type { RoomOperationState } from '../chatReducer';
 
 interface LeaveRoomModalProps {
   roomName: string | null;
-  onLeft: () => void;
+  operation: RoomOperationState;
+  onLeave: (roomName: string) => void;
 }
 
-interface Feedback {
-  type: 'success' | 'danger';
-  message: string;
-}
-
-export default function LeaveRoomModal({ roomName, onLeft }: LeaveRoomModalProps) {
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [feedback, setFeedback] = useState<Feedback | null>(null);
-
-  useEffect(() => {
-    const handleOutRoom = (response: OutRoomResponse) => {
-      console.log('[OUT_ROOM] Response:', response);
-      setIsSubmitting(false);
-
-      if (response.status === 'success') {
-        setFeedback({
-          type: 'success',
-          message: response.data.mes || 'Đã rời phòng thành công.',
-        });
-        onLeft();
-        return;
-      }
-
-      setFeedback({
-        type: 'danger',
-        message: response.mes || 'Không thể rời phòng chat.',
-      });
-    };
-
-    wsService.on('OUT_ROOM', handleOutRoom);
-    return () => {
-      wsService.off('OUT_ROOM', handleOutRoom);
-    };
-  }, [onLeft]);
-
-  const handleLeaveRoom = () => {
-    if (!roomName) {
-      setFeedback({ type: 'danger', message: 'Vui lòng chọn phòng muốn rời.' });
-      return;
-    }
-
-    setFeedback(null);
-    setIsSubmitting(true);
-    outRoomWithWebSocket(roomName);
-  };
+export default function LeaveRoomModal({
+  roomName,
+  operation,
+  onLeave,
+}: LeaveRoomModalProps) {
+  const isSubmitting = operation.status === 'loading';
 
   return (
     <div
@@ -82,9 +41,12 @@ export default function LeaveRoomModal({ roomName, onLeft }: LeaveRoomModalProps
             <div className="form-text mt-2">
               Chủ phòng không thể tự rời phòng.
             </div>
-            {feedback && (
-              <div className={`alert alert-${feedback.type} py-2 mt-3 mb-0`} role="alert">
-                {feedback.message}
+            {operation.message && (
+              <div
+                className={`alert alert-${operation.status === 'succeeded' ? 'success' : 'danger'} py-2 mt-3 mb-0`}
+                role="alert"
+              >
+                {operation.message}
               </div>
             )}
           </div>
@@ -100,7 +62,7 @@ export default function LeaveRoomModal({ roomName, onLeft }: LeaveRoomModalProps
             <button
               className="btn btn-danger"
               type="button"
-              onClick={handleLeaveRoom}
+              onClick={() => roomName && onLeave(roomName)}
               disabled={isSubmitting || !roomName}
             >
               {isSubmitting && (

@@ -1,62 +1,30 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import type { FormEvent } from 'react';
-import { wsService } from '../../../services/websocketService';
-import type { CreateRoomResponse } from '../../../types/chat.type';
-import { createRoomWithWebSocket } from '../roomAPI';
+import type { RoomOperationState } from '../chatReducer';
 
 interface CreateRoomModalProps {
-  onCreated: () => void;
+  operation: RoomOperationState;
+  onCreate: (roomName: string) => void;
+  onReset: () => void;
 }
 
-interface Feedback {
-  type: 'success' | 'danger';
-  message: string;
-}
-
-export default function CreateRoomModal({ onCreated }: CreateRoomModalProps) {
+export default function CreateRoomModal({
+  operation,
+  onCreate,
+  onReset,
+}: CreateRoomModalProps) {
   const [roomName, setRoomName] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [feedback, setFeedback] = useState<Feedback | null>(null);
-
-  useEffect(() => {
-    const handleCreateRoom = (response: CreateRoomResponse) => {
-      console.log('[CREATE_ROOM] Response:', response);
-      setIsSubmitting(false);
-
-      if (response.status === 'success') {
-        setRoomName('');
-        setFeedback({
-          type: 'success',
-          message: `Đã tạo phòng “${response.data.name}” thành công.`,
-        });
-        onCreated();
-        return;
-      }
-
-      setFeedback({
-        type: 'danger',
-        message: response.mes || 'Không thể tạo phòng chat.',
-      });
-    };
-
-    wsService.on('CREATE_ROOM', handleCreateRoom);
-    return () => {
-      wsService.off('CREATE_ROOM', handleCreateRoom);
-    };
-  }, [onCreated]);
+  const isSubmitting = operation.status === 'loading';
+  const displayedRoomName = operation.status === 'succeeded' ? '' : roomName;
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const normalizedRoomName = roomName.trim();
+    onCreate(displayedRoomName);
+  };
 
-    if (!normalizedRoomName) {
-      setFeedback({ type: 'danger', message: 'Vui lòng nhập tên phòng.' });
-      return;
-    }
-
-    setFeedback(null);
-    setIsSubmitting(true);
-    createRoomWithWebSocket(normalizedRoomName);
+  const handleRoomNameChange = (value: string) => {
+    setRoomName(value);
+    if (operation.status !== 'idle') onReset();
   };
 
   return (
@@ -88,8 +56,8 @@ export default function CreateRoomModal({ onCreated }: CreateRoomModalProps) {
               id="createRoomName"
               type="text"
               className="form-control"
-              value={roomName}
-              onChange={(event) => setRoomName(event.target.value)}
+              value={displayedRoomName}
+              onChange={(event) => handleRoomNameChange(event.target.value)}
               placeholder="Nhập tên phòng mới..."
               disabled={isSubmitting}
               autoComplete="off"
@@ -97,9 +65,12 @@ export default function CreateRoomModal({ onCreated }: CreateRoomModalProps) {
             <div className="form-text">
               Bạn sẽ là chủ phòng sau khi tạo thành công.
             </div>
-            {feedback && (
-              <div className={`alert alert-${feedback.type} py-2 mt-3 mb-0`} role="alert">
-                {feedback.message}
+            {operation.message && (
+              <div
+                className={`alert alert-${operation.status === 'succeeded' ? 'success' : 'danger'} py-2 mt-3 mb-0`}
+                role="alert"
+              >
+                {operation.message}
               </div>
             )}
           </div>
