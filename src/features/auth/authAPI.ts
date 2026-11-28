@@ -1,62 +1,46 @@
 import { wsService } from '../../services/websocketService';
-import { authStart } from './userReducer';
-import type { AppDispatch } from '../../store/store';
+import type { GetPeopleChatMessagesRequest } from '../../types/chat.type';
 
-export const loginWithWebSocket = (credentials: { username: string; password: string }, dispatch: AppDispatch) => {
-    dispatch(authStart());
-    const payload = {
-        action: "onchat",
-        data: {
-            event: "LOGIN",
-            data: {
-               user: credentials.username,
-               pass: credentials.password,
-            }
-        }
-    };
-    wsService.send(payload);
-    console.log('[AUTH_API] login');
+export const PEOPLE_CHAT_HISTORY_EVENT = 'CHAT_PEOPLE_GET_MES';
+
+export const getUserListWithWebSocket = (): void => {
+  wsService.send({
+    action: 'onchat',
+    data: {
+      event: 'GET_USER_LIST',
+      data: {},
+    },
+  });
+
+  console.log('[CHAT_API] Đã gửi yêu cầu GET_USER_LIST');
 };
 
-export const registerWithWebSocket = (userInfo: { username: string; password: string }, dispatch: AppDispatch) => {
-    dispatch(authStart());
-    const payload = {
-        action: "onchat",
-        data: {
-            event: "REGISTER",
-            data: {
-                user: userInfo.username,
-                pass: userInfo.password,
-            }
-        }
-    };
-    wsService.send(payload);
-    console.log('[AUTH_API] register');
-};
+export const getPeopleChatMessagesWithWebSocket = (
+  name: string,
+  page: number = 1,
+): void => {
+  const normalizedName = name.trim();
 
-export const reLoginWithWebSocket = (username: string, reLoginCode: string, dispatch: AppDispatch) => {
-    dispatch(authStart());
-    const payload = {
-        action: "onchat",
-        data: {
-            event: "RE_LOGIN",
-            data: {
-                user: username,
-                code: reLoginCode,
-            }
-        }
-    };
-    wsService.send(payload);
-    console.log('[AUTH_API] relogin');
-};
+  if (!normalizedName) {
+    throw new Error('Vui lòng cung cấp tên người dùng cần lấy lịch sử tin nhắn.');
+  }
 
-export const logoutWithWebSocket = () => {
-    const payload = {
-        action: "onchat",
-        data: {
-            event: "LOGOUT"
-        }
-    };
-    wsService.send(payload);
-    console.log('[AUTH_API] logout');
+  if (!Number.isInteger(page) || page < 1) {
+    throw new RangeError('Số trang phải là số nguyên lớn hơn hoặc bằng 1.');
+  }
+
+  const data: GetPeopleChatMessagesRequest = {
+    name: normalizedName,
+    page,
+  };
+
+  wsService.send({
+    action: 'onchat',
+    data: {
+      event: PEOPLE_CHAT_HISTORY_EVENT,
+      data,
+    },
+  });
+
+  console.log('[CHAT_API] Yêu cầu lịch sử tin nhắn cá nhân:', data);
 };
