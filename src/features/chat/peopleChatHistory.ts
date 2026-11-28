@@ -9,13 +9,6 @@ let requestQueue: Promise<void> = Promise.resolve();
 const compareMessages = (first: Message, second: Message): number =>
     first.createAt.localeCompare(second.createAt) || first.id - second.id;
 
-export const mergePeopleChatMessages = (current: Message[], older: Message[]): Message[] => {
-  const messagesById = new Map<number, Message>();
-  older.forEach((message) => messagesById.set(message.id, message));
-  current.forEach((message) => messagesById.set(message.id, message));
-  return [...messagesById.values()].sort(compareMessages);
-};
-
 const isMessage = (value: unknown): value is Message => {
   if (typeof value !== 'object' || value === null) return false;
 
@@ -34,7 +27,6 @@ export const getPeopleChatHistory = (
   signal: AbortSignal,
   page: number = 1,
 ): Promise<Message[]> => {
-  // API không có request ID: xử lý lần lượt để phản hồi cũ không lẫn sang người mới.
   const request = requestQueue.then(() => {
     signal.throwIfAborted();
 
@@ -92,7 +84,6 @@ export const getPeopleChatHistory = (
     });
   });
 
-  // Request đã gửi vẫn nhận hết phản hồi dù người dùng đã đổi cuộc trò chuyện.
   requestQueue = request.then(() => undefined, () => undefined);
   return request;
 };

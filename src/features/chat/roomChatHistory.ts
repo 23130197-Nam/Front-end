@@ -18,13 +18,6 @@ let requestQueue: Promise<void> = Promise.resolve();
 const compareMessages = (first: Message, second: Message): number =>
     first.createAt.localeCompare(second.createAt) || first.id - second.id;
 
-export const mergeRoomChatMessages = (current: Message[], older: Message[]): Message[] => {
-  const messagesById = new Map<number, Message>();
-  older.forEach((message) => messagesById.set(message.id, message));
-  current.forEach((message) => messagesById.set(message.id, message));
-  return [...messagesById.values()].sort(compareMessages);
-};
-
 const isRoomMember = (value: unknown): value is RoomMember => {
   if (typeof value !== 'object' || value === null) return false;
   const member = value as Record<string, unknown>;
