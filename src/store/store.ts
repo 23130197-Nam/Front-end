@@ -4,7 +4,7 @@ import userReducer from '../features/auth/userReducer';
 export const store = configureStore({
   reducer: {
     user: userReducer,
-    // chat: chatReducer,
+    chat: chatReducer,
   },
 });
 
